@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useTransition } from "react";
 import { createPayment } from "@/actions/payments";
 import { toast } from "sonner";
 
 export default function NewPaymentPage() {
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
@@ -26,7 +26,6 @@ export default function NewPaymentPage() {
   };
 
   const handleSubmit = async (formData: FormData) => {
-    setLoading(true);
     setError(null);
 
     const paymentDate = formData.get("payment_date") as string;
@@ -37,33 +36,31 @@ export default function NewPaymentPage() {
     // Validasi dasar
     if (!paymentDate) {
       setError("Tanggal pembayaran wajib diisi");
-      setLoading(false);
       return;
     }
 
     if (!amount || amount <= 0) {
       setError("Nominal harus lebih dari 0");
-      setLoading(false);
       return;
     }
 
-    try {
-      const result = await createPayment(
-        paymentDate,
-        amount,
-        proofFile || undefined,
-        receiptFile || undefined
-      );
+    startTransition(async () => {
+      try {
+        const result = await createPayment(
+          paymentDate,
+          amount,
+          proofFile || undefined,
+          receiptFile || undefined
+        );
 
-      if (result?.error) {
-        setError(result.error);
-        toast.error(result.error);
+        if (result?.error) {
+          setError(result.error);
+          toast.error(result.error);
+        }
+      } catch {
+        setError("Terjadi kesalahan saat menyimpan data");
       }
-    } catch {
-      setError("Terjadi kesalahan saat menyimpan data");
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   return (
@@ -176,10 +173,17 @@ export default function NewPaymentPage() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={isPending}
           className="w-full bg-blue-900 text-white rounded-lg py-3 text-sm font-semibold hover:bg-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Menyimpan..." : "💾 Simpan Pembayaran"}
+          {isPending ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+              Menyimpan...
+            </span>
+          ) : (
+            "💾 Simpan Pembayaran"
+          )}
         </button>
       </form>
     </div>

@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useTransition } from "react";
 import { login } from "@/actions/auth";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleSubmit = async (formData: FormData) => {
-    setLoading(true);
-    const result = await login(formData);
-    if (result?.error) {
-      toast.error(result.error);
-    }
-    setLoading(false);
+    startTransition(async () => {
+      const result = await login(formData);
+      if (result?.error) {
+        toast.error(result.error);
+      }
+    });
   };
 
   return (
@@ -68,10 +68,17 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isPending}
             className="w-full bg-blue-900 text-white rounded-lg py-2 text-sm font-semibold hover:bg-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Loading..." : "Login"}
+            {isPending ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                Logging in...
+              </span>
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
 
