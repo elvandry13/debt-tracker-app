@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { NavBar } from "@/components/nav-bar";
+import { PwaRegister } from "@/components/pwa-register";
 import { getUser } from "@/actions/auth";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default async function RootLayout({
         <NavBar userRole={user?.role} />
         <main className="max-w-lg mx-auto px-4 pb-8 pt-4">{children}</main>
         <Toaster richColors position="top-center" />
+        <PwaRegister />
       </body>
     </html>
   );

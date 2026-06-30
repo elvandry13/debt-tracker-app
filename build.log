@@ -15,7 +15,7 @@
  ○ (pwa)   Scope: /
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (102kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (250kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
-⚠ Compiled with warnings in 8.2s
+⚠ Compiled with warnings in 32.0s
 
 ./node_modules/@supabase/supabase-js/dist/index.mjs
 A Node.js API is used (process.version at line: 27) which is not supported in the Edge Runtime.
@@ -28,13 +28,13 @@ Import trace for requested module:
 ./src/lib/supabase/middleware.ts
 
   Running TypeScript ...
-  Finished TypeScript in 2.7s ...
+  Finished TypeScript in 10.3s ...
   Collecting page data using 7 workers ...
   Generating static pages using 7 workers (0/10) ...
   Generating static pages using 7 workers (2/10) 
   Generating static pages using 7 workers (4/10) 
   Generating static pages using 7 workers (7/10) 
-✓ Generating static pages using 7 workers (10/10) in 277ms
+✓ Generating static pages using 7 workers (10/10) in 1573ms
   Finalizing page optimization ...
   Collecting build traces ...
 
