@@ -1,0 +1,55 @@
+
+> debt-tracker-app@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.2.9 (webpack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for client (static)...
+ ○ (pwa) Service worker: c:\Users\elvan\Documents\debt-tracker-app\public\sw.js
+ ○ (pwa)   URL: /sw.js
+ ○ (pwa)   Scope: /
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (102kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (250kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+⚠ Compiled with warnings in 8.2s
+
+./node_modules/@supabase/supabase-js/dist/index.mjs
+A Node.js API is used (process.version at line: 27) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/supabase-js/dist/index.mjs
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+./src/lib/supabase/middleware.ts
+
+  Running TypeScript ...
+  Finished TypeScript in 2.7s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/10) ...
+  Generating static pages using 7 workers (2/10) 
+  Generating static pages using 7 workers (4/10) 
+  Generating static pages using 7 workers (7/10) 
+✓ Generating static pages using 7 workers (10/10) in 277ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin
+├ ƒ /admin/loans
+├ ƒ /admin/users
+├ ƒ /login
+├ ƒ /payments
+└ ƒ /payments/new
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
