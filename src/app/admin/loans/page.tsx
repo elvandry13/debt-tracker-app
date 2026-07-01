@@ -146,7 +146,14 @@ export default function AdminLoansPage() {
             disabled={adding}
             className="w-full text-sm px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition disabled:opacity-50"
           >
-            {adding ? "Menyimpan..." : "Simpan Loan"}
+            {adding ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                Menyimpan...
+              </span>
+            ) : (
+              "Simpan Loan"
+            )}
           </button>
         </div>
       )}
@@ -176,7 +183,14 @@ export default function AdminLoansPage() {
                     disabled={actionLoading === loan.id}
                     className="flex-1 text-xs px-3 py-1.5 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition disabled:opacity-50"
                   >
-                    {actionLoading === loan.id ? "Menyimpan..." : "Simpan"}
+                    {actionLoading === loan.id ? (
+                      <span className="inline-flex items-center justify-center gap-1">
+                        <span className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
+                        Menyimpan...
+                      </span>
+                    ) : (
+                      "Simpan"
+                    )}
                   </button>
                   <button
                     onClick={cancelEdit}
@@ -210,7 +224,14 @@ export default function AdminLoansPage() {
                     disabled={actionLoading === loan.id}
                     className="flex-1 text-xs px-3 py-1.5 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition disabled:opacity-50"
                   >
-                    {actionLoading === loan.id ? "Menghapus..." : "🗑️ Hapus"}
+                    {actionLoading === loan.id ? (
+                      <span className="inline-flex items-center justify-center gap-1">
+                        <span className="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent" />
+                        Menghapus...
+                      </span>
+                    ) : (
+                      "🗑️ Hapus"
+                    )}
                   </button>
                 </div>
               </>
