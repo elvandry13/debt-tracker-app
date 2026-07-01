@@ -3,13 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { z } from "zod";
-
-const paymentSchema = z.object({
-  loan_id: z.string().uuid("ID hutang tidak valid"),
-  payment_date: z.string().min(1, "Tanggal wajib diisi"),
-  amount: z.coerce.number().positive("Nominal harus lebih dari 0"),
-});
 
 export async function createPayment(
   paymentDate: string,
@@ -107,6 +100,201 @@ export async function createPayment(
   revalidatePath("/");
   revalidatePath("/payments");
   redirect("/payments");
+}
+
+function extractStoragePath(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    // Path format: /storage/v1/object/public/<bucket>/<path>
+    const parts = u.pathname.split("/");
+    const publicIndex = parts.indexOf("public");
+    if (publicIndex === -1 || publicIndex + 2 >= parts.length) return null;
+    return parts.slice(publicIndex + 2).join("/");
+  } catch {
+    return null;
+  }
+}
+
+async function uploadFile(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  file: File,
+  prefix: string
+): Promise<{ url: string | null; error?: string }> {
+  if (!file || file.size === 0) return { url: null };
+
+  const fileName = `${userId}/${Date.now()}_${prefix}_${file.name}`;
+  const { error: uploadError } = await supabase.storage
+    .from("payment_receipts")
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (uploadError) {
+    return { url: null, error: `Gagal mengupload ${prefix}: ${uploadError.message}` };
+  }
+
+  const { data: urlData } = supabase.storage
+    .from("payment_receipts")
+    .getPublicUrl(fileName);
+
+  return { url: urlData.publicUrl };
+}
+
+export async function deletePayment(paymentId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "ADMIN") {
+    return { error: "Hanya Admin yang dapat menghapus pembayaran" };
+  }
+
+  // Ambil data payment untuk hapus file storage
+  const { data: payment } = await supabase
+    .from("payments")
+    .select("proof_file_url, receipt_file_url")
+    .eq("id", paymentId)
+    .single();
+
+  if (payment) {
+    const proofPath = extractStoragePath(payment.proof_file_url);
+    const receiptPath = extractStoragePath(payment.receipt_file_url);
+
+    const toRemove: string[] = [];
+    if (proofPath) toRemove.push(proofPath);
+    if (receiptPath) toRemove.push(receiptPath);
+
+    if (toRemove.length > 0) {
+      await supabase.storage.from("payment_receipts").remove(toRemove);
+    }
+  }
+
+  const { error } = await supabase
+    .from("payments")
+    .delete()
+    .eq("id", paymentId);
+
+  if (error) {
+    return { error: "Gagal menghapus pembayaran: " + error.message };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/payments");
+  return { success: true };
+}
+
+export async function updatePayment(
+  paymentId: string,
+  paymentDate: string,
+  amount: number,
+  proofFile?: File,
+  receiptFile?: File
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "ADMIN") {
+    return { error: "Hanya Admin yang dapat mengedit pembayaran" };
+  }
+
+  // Ambil data existing untuk hapus file lama jika ada upload baru
+  const { data: existing } = await supabase
+    .from("payments")
+    .select("proof_file_url, receipt_file_url")
+    .eq("id", paymentId)
+    .single();
+
+  let proofUrl = existing?.proof_file_url ?? null;
+  let receiptUrl = existing?.receipt_file_url ?? null;
+
+  // Upload proof baru jika ada
+  if (proofFile && proofFile.size > 0) {
+    // Hapus file lama
+    const oldPath = extractStoragePath(proofUrl);
+    if (oldPath) {
+      await supabase.storage.from("payment_receipts").remove([oldPath]);
+    }
+
+    const result = await uploadFile(supabase, user.id, proofFile, "proof");
+    if (result.error) return { error: result.error };
+    proofUrl = result.url;
+  }
+
+  // Upload receipt baru jika ada
+  if (receiptFile && receiptFile.size > 0) {
+    const oldPath = extractStoragePath(receiptUrl);
+    if (oldPath) {
+      await supabase.storage.from("payment_receipts").remove([oldPath]);
+    }
+
+    const result = await uploadFile(supabase, user.id, receiptFile, "receipt");
+    if (result.error) return { error: result.error };
+    receiptUrl = result.url;
+  }
+
+  const { error } = await supabase
+    .from("payments")
+    .update({
+      payment_date: paymentDate,
+      amount,
+      proof_file_url: proofUrl,
+      receipt_file_url: receiptUrl,
+    })
+    .eq("id", paymentId);
+
+  if (error) {
+    return { error: "Gagal mengupdate pembayaran: " + error.message };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/payments");
+  redirect("/payments");
+}
+
+export async function getPayment(paymentId: string) {
+  const supabase = await createClient();
+
+  const { data: payment, error } = await supabase
+    .from("payments")
+    .select(
+      `
+      id,
+      payment_date,
+      amount,
+      proof_file_url,
+      receipt_file_url,
+      created_at,
+      loan_id,
+      recorded_by
+    `
+    )
+    .eq("id", paymentId)
+    .single();
+
+  if (error || !payment) return null;
+  return payment;
 }
 
 export async function getPayments() {
