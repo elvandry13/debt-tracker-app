@@ -155,7 +155,14 @@ export default function AdminUsersPage() {
               disabled={adding}
               className="w-full text-sm px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition disabled:opacity-50"
             >
-              {adding ? "Membuat..." : "Tambah User"}
+              {adding ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  Membuat...
+                </span>
+              ) : (
+                "Tambah User"
+              )}
             </button>
           </form>
         </div>
@@ -216,7 +223,16 @@ export default function AdminUsersPage() {
                     : "border-green-300 text-green-600 hover:bg-green-50"
                 }`}
               >
-                {user.is_active ? "Nonaktifkan" : "Aktifkan"}
+                {actionLoading === user.id + "active" ? (
+                  <span className="inline-flex items-center justify-center gap-1">
+                    <span className="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent" />
+                    Memproses...
+                  </span>
+                ) : user.is_active ? (
+                  "Nonaktifkan"
+                ) : (
+                  "Aktifkan"
+                )}
               </button>
 
               {/* Delete */}
@@ -225,7 +241,14 @@ export default function AdminUsersPage() {
                 disabled={actionLoading === user.id + "delete"}
                 className="text-xs px-3 py-1 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 font-medium transition disabled:opacity-50"
               >
-                Hapus
+                {actionLoading === user.id + "delete" ? (
+                  <span className="inline-flex items-center justify-center gap-1">
+                    <span className="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent" />
+                    Menghapus...
+                  </span>
+                ) : (
+                  "Hapus"
+                )}
               </button>
             </div>
           </div>
